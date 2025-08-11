@@ -1,13 +1,22 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 from .database import create_db_and_tables
-from .dependencies import get_db
-from . import schemas
+from app.router import auth, currency
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    create_db_and_tables()
+    yield
+    # Shutdown logic (if any)
 
-app= FastAPI()
+# Create app with lifespan
+app = FastAPI(lifespan=lifespan)
 
+# Include routers
+app.include_router(auth.router)
+app.include_router(currency.router)
 
-@app.get('/')
+@app.get("/")
 async def home():
     return {"message": "Welcome to Currency exchanger"}
-

@@ -53,6 +53,52 @@ def get_exchange_rate(
     db.commit()
 
     # return only the converted amount
-    return {    "converted_amount": f"{converted_amount} {target_currency.upper()}"}
+    return {
+    "converted_amount": f"{converted_amount} {target_currency.upper()}",
+    "rate": rate
+}
+
+#Swap Currencies
+@router.get("/reverse/{base_currency}/{target_currency}")
+def reverse_exchange_rate(
+    base_currency: str,
+    target_currency: str,
+    amount: float,
+    db: Session = Depends(get_db),
+    current_user: schemas.UserBase = Depends(auth_utils.get_current_user)
+):
+    # Swap currencies
+    swapped_base = target_currency.upper()
+    swapped_target = base_currency.upper()
+
+    response = httpx.get(f"{BASE_URL}/convert", params={
+        "from": swapped_base,
+        "to": swapped_target,
+        "amount": amount,
+        "access_key": API_KEY
+    })
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exchange rate not found")
+
+    data = response.json()
+    rate = data.get("info", {}).get("quote")
+    converted_amount = data.get("result")
+
+    # Save to DB
+    new_record = models.HistoricalRate(
+        base_currency=swapped_base,
+        target_currency=swapped_target,
+        rate=rate,
+        date=datetime.now(timezone.utc),
+        user_id=current_user.id
+    )
+    db.add(new_record)
+    db.commit()
+
+    return {
+        "converted_amount": f"{converted_amount} {swapped_target}"
+    }
+
 
 

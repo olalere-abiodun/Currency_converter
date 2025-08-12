@@ -51,6 +51,23 @@ class UserPreferencesResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class AlertCreate(BaseModel):
+    base_currency: str
+    target_currency: str
+    target_rate: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+class AlertResponse(BaseModel):
+    id: int
+    base_currency: str
+    target_currency: str
+    target_rate: float
+    is_active: bool
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 

@@ -35,6 +35,35 @@ def check_user(db: Session, email: str = None, username: str = None, use_or: boo
     
     return query.first()
 
+# Get  User rate hsitory from DB 
+def get_user_rate_history(db: Session, user_id: int):
+    query = db.query(models.HistoricalRate).filter(models.HistoricalRate.user_id == user_id).order_by(models.HistoricalRate.date.desc()).all()
+    if not query:
+        raise HTTPException(status_code=404, detail="No historical rates found for this user")
+    return query
+
+# Save favorite pair
+def save_favorite_pair(db: Session, user_id: int, base_currency: str, target_currency: str):
+    existing = db.query(models.FavoritePair).filter(models.FavoritePair.user_id == user_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="User already has a favorite pair")
+    favorite = models.FavoritePair(
+        base_currency=base_currency.upper(),
+        target_currency=target_currency.upper(),
+        user_id=user_id
+    )
+    db.add(favorite)
+    db.commit()
+    db.refresh(favorite)
+    return favorite
+
+# get user favorite pair 
+def get_user_favorite_pairs(db: Session, user_id: int):
+    favorites = db.query(models.FavoritePair).filter(models.FavoritePair.user_id == user_id).all()
+    if not favorites:
+        raise HTTPException(status_code=404, detail="No favorite pairs found for this user")
+    return favorites
+
 
 
 

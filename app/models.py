@@ -26,7 +26,7 @@ class FavoritePair(Base):
     id = Column(Integer, primary_key=True, index=True)
     base_currency = Column(String, nullable=False)
     target_currency = Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True)
 
     user = relationship("Users", back_populates="favorites")
 
